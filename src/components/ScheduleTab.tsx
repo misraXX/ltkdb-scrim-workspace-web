@@ -78,7 +78,8 @@ export function ScheduleTab({ data, loading, error, onRefresh, onLoadSchedule, o
   const [selectedScheduleId, setSelectedScheduleId] = useState("");
   const [form, setForm] = useState<ScheduleFormState>(createInitialState(data));
   const [status, setStatus] = useState("");
-  const [submitting, setSubmitting] = useState(false);
+  const [loadingSchedule, setLoadingSchedule] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     setForm((current) => {
@@ -158,7 +159,7 @@ export function ScheduleTab({ data, loading, error, onRefresh, onLoadSchedule, o
       return;
     }
 
-    setSubmitting(true);
+    setLoadingSchedule(true);
     try {
       const detail = await onLoadSchedule(selectedScheduleId);
       setForm({
@@ -182,7 +183,7 @@ export function ScheduleTab({ data, loading, error, onRefresh, onLoadSchedule, o
     } catch (loadError) {
       setStatus(loadError instanceof Error ? loadError.message : String(loadError));
     } finally {
-      setSubmitting(false);
+      setLoadingSchedule(false);
     }
   }
 
@@ -193,7 +194,7 @@ export function ScheduleTab({ data, loading, error, onRefresh, onLoadSchedule, o
   }
 
   async function handleSave() {
-    setSubmitting(true);
+    setSaving(true);
     try {
       const payload: SavePlannedMatchPayload = {
         editMode: form.editMode,
@@ -225,7 +226,7 @@ export function ScheduleTab({ data, loading, error, onRefresh, onLoadSchedule, o
     } catch (saveError) {
       setStatus(saveError instanceof Error ? saveError.message : String(saveError));
     } finally {
-      setSubmitting(false);
+      setSaving(false);
     }
   }
 
@@ -237,7 +238,7 @@ export function ScheduleTab({ data, loading, error, onRefresh, onLoadSchedule, o
           <p className="section-copy">新規予定の登録と既存予定の読込・更新をこのタブで行います。</p>
         </div>
         <button type="button" className="ghost-button" onClick={() => void onRefresh()} disabled={loading}>
-          候補を再読込
+          {loading ? "再読込中..." : "候補を再読込"}
         </button>
       </div>
 
@@ -267,10 +268,10 @@ export function ScheduleTab({ data, loading, error, onRefresh, onLoadSchedule, o
             </div>
 
             <div className="button-row">
-              <button type="button" className="ghost-button" onClick={() => void handleLoadSchedule()} disabled={submitting}>
-                既存予定を読込
+              <button type="button" className="ghost-button" onClick={() => void handleLoadSchedule()} disabled={loadingSchedule}>
+                {loadingSchedule ? "読込中..." : "既存予定を読込"}
               </button>
-              <button type="button" className="ghost-button" onClick={handleReset} disabled={submitting}>
+              <button type="button" className="ghost-button" onClick={handleReset} disabled={loadingSchedule || saving}>
                 新規入力に戻す
               </button>
             </div>
@@ -368,8 +369,8 @@ export function ScheduleTab({ data, loading, error, onRefresh, onLoadSchedule, o
             </label>
 
             <div className="button-row">
-              <button type="button" className="primary-button" onClick={() => void handleSave()} disabled={submitting}>
-                予定と試合IDを保存
+              <button type="button" className="primary-button" onClick={() => void handleSave()} disabled={saving}>
+                {saving ? "保存中..." : "予定と試合IDを保存"}
               </button>
             </div>
 

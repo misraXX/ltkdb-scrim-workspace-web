@@ -54,6 +54,7 @@ export function App() {
   const [scheduleData, setScheduleData] = useState<ScheduleDialogData | null>(null);
   const [scheduleLoading, setScheduleLoading] = useState(true);
   const [scheduleError, setScheduleError] = useState("");
+  const refreshingAll = summaryLoading && uploadLoading && reviewLoading && scheduleLoading;
 
   async function refreshAll() {
     setSummaryLoading(true);
@@ -207,8 +208,8 @@ export function App() {
             <a className="ghost-button link-button" href={screenshotFolderUrl} target="_blank" rel="noreferrer">
               スクショフォルダ
             </a>
-            <button type="button" className="ghost-button" onClick={() => void refreshAll()}>
-              一覧更新
+            <button type="button" className="ghost-button" onClick={() => void refreshAll()} disabled={refreshingAll}>
+              {refreshingAll ? "更新中..." : "一覧更新"}
             </button>
           </div>
         </div>

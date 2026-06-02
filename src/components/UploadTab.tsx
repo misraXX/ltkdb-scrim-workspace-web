@@ -92,7 +92,9 @@ export function UploadTab({
   const [minute15NoImage, setMinute15NoImage] = useState(false);
   const [resultNoImage, setResultNoImage] = useState(false);
   const [status, setStatus] = useState("");
-  const [submitting, setSubmitting] = useState(false);
+  const [loadingMatch, setLoadingMatch] = useState(false);
+  const [submittingImages, setSubmittingImages] = useState(false);
+  const [savingBp, setSavingBp] = useState(false);
 
   const minute15InputRef = useRef<HTMLInputElement | null>(null);
   const resultInputRef = useRef<HTMLInputElement | null>(null);
@@ -131,7 +133,7 @@ export function UploadTab({
       return;
     }
 
-    setSubmitting(true);
+    setLoadingMatch(true);
     try {
       const detail = await onLoadMatch(matchId.trim());
       setMatchDetail(detail);
@@ -149,7 +151,7 @@ export function UploadTab({
     } catch (error) {
       setStatus(error instanceof Error ? error.message : String(error));
     } finally {
-      setSubmitting(false);
+      setLoadingMatch(false);
     }
   }
 
@@ -198,7 +200,7 @@ export function UploadTab({
       return;
     }
 
-    setSubmitting(true);
+    setSubmittingImages(true);
     try {
       const minute15Image = await fileToDataUrl(minute15InputRef.current?.files?.[0] ?? null);
       const resultImage = await fileToDataUrl(resultInputRef.current?.files?.[0] ?? null);
@@ -219,7 +221,7 @@ export function UploadTab({
     } catch (error) {
       setStatus(error instanceof Error ? error.message : String(error));
     } finally {
-      setSubmitting(false);
+      setSubmittingImages(false);
     }
   }
 
@@ -229,7 +231,7 @@ export function UploadTab({
       return;
     }
 
-    setSubmitting(true);
+    setSavingBp(true);
     try {
       const payload: SaveManualBpPayload = {
         matchId: matchId.trim(),
@@ -255,7 +257,7 @@ export function UploadTab({
     } catch (error) {
       setStatus(error instanceof Error ? error.message : String(error));
     } finally {
-      setSubmitting(false);
+      setSavingBp(false);
     }
   }
 
@@ -278,7 +280,7 @@ export function UploadTab({
           </p>
         </div>
         <button type="button" className="ghost-button" onClick={() => void onRefresh()} disabled={loading}>
-          候補を再読込
+          {loading ? "再読込中..." : "候補を再読込"}
         </button>
       </div>
 
@@ -303,11 +305,11 @@ export function UploadTab({
           </div>
 
           <div className="button-row">
-            <button type="button" className="ghost-button" onClick={() => void handleLoadMatch()} disabled={submitting}>
-              試合情報を読込
+            <button type="button" className="ghost-button" onClick={() => void handleLoadMatch()} disabled={loadingMatch}>
+              {loadingMatch ? "読込中..." : "試合情報を読込"}
             </button>
-            <button type="button" className="primary-button" onClick={() => void handleSubmitImages()} disabled={submitting}>
-              画像を送信
+            <button type="button" className="primary-button" onClick={() => void handleSubmitImages()} disabled={submittingImages}>
+              {submittingImages ? "送信中..." : "画像を送信"}
             </button>
           </div>
 
@@ -439,8 +441,8 @@ export function UploadTab({
             <button type="button" className="ghost-button" onClick={handleClearDraft}>
               クリア
             </button>
-            <button type="button" className="ghost-button" onClick={() => void handleSaveBp()} disabled={submitting}>
-              BPを保存
+            <button type="button" className="ghost-button" onClick={() => void handleSaveBp()} disabled={savingBp}>
+              {savingBp ? "保存中..." : "BPを保存"}
             </button>
           </div>
 

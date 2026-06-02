@@ -202,7 +202,7 @@ export function ReviewTab({
           </p>
         </div>
         <button type="button" className="ghost-button" onClick={() => void onRefresh()} disabled={loading}>
-          一覧更新
+          {loading ? "更新中..." : "一覧更新"}
         </button>
       </div>
 
