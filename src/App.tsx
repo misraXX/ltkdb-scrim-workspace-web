@@ -143,31 +143,49 @@ export function App() {
 
   async function handleSubmitImages(payload: SubmitUploadPayload): Promise<SubmitUploadResult> {
     const result = await gasApi.submitScrimUploadDialog(payload);
-    await Promise.allSettled([loadSummary(), loadUploadData(), loadReviewList()]);
+    const completedRequiredImages =
+      result.updatedKinds.includes("15分") && result.updatedKinds.includes("RESULT");
+
+    if (completedRequiredImages) {
+      setUploadData((current) =>
+        current
+          ? {
+              ...current,
+              candidates: current.candidates.filter((candidate) => candidate.matchId !== result.matchId),
+            }
+          : current,
+      );
+      setSummary((current) => ({
+        ...current,
+        missingScreenshotCount: Math.max(0, current.missingScreenshotCount - 1),
+      }));
+    }
+
     return result;
   }
 
   async function handleSaveBp(payload: SaveManualBpPayload): Promise<SaveManualBpResult> {
     const result = await gasApi.saveManualBp(payload);
-    await Promise.allSettled([loadSummary(), loadReviewList()]);
     return result;
   }
 
   async function handleSaveReview(payload: SavePendingReviewPayload): Promise<SavePendingReviewResult> {
     const result = await gasApi.savePendingReview(payload);
-    await Promise.allSettled([loadSummary(), loadReviewList()]);
     return result;
   }
 
   async function handleApproveReview(payload: SavePendingReviewPayload): Promise<SavePendingReviewResult> {
     const result = await gasApi.approvePendingReview(payload);
-    await Promise.allSettled([loadSummary(), loadUploadData(), loadReviewList()]);
+    setReviewItems((current) => current.filter((item) => item.matchId !== result.matchId));
+    setSummary((current) => ({
+      ...current,
+      pendingReviewCount: Math.max(0, current.pendingReviewCount - 1),
+    }));
     return result;
   }
 
   async function handleSaveSchedule(payload: SavePlannedMatchPayload): Promise<SavePlannedMatchResult> {
     const result = await gasApi.savePlannedMatch(payload);
-    await Promise.allSettled([loadSummary(), loadUploadData(), loadScheduleData()]);
     return result;
   }
 
