@@ -33,6 +33,8 @@ type ScheduleFormState = {
   memo: string;
 };
 
+type TeamSide = "left" | "right";
+
 function createInitialState(data: ScheduleDialogData | null): ScheduleFormState {
   return {
     editMode: "create",
@@ -58,6 +60,18 @@ function csvToList(value?: string) {
     .split(",")
     .map((item) => item.trim())
     .filter(Boolean);
+}
+
+function teamKeyForSide(form: ScheduleFormState, side: TeamSide) {
+  return side === "left" ? form.leftTeamKey : form.rightTeamKey;
+}
+
+function oppositeSide(side: TeamSide): TeamSide {
+  return side === "left" ? "right" : "left";
+}
+
+function sideForTeamKey(form: ScheduleFormState, teamKey: string): TeamSide {
+  return teamKey === form.rightTeamKey && teamKey !== form.leftTeamKey ? "right" : "left";
 }
 
 export function ScheduleTab({ data, loading, error, onRefresh, onLoadSchedule, onSave }: ScheduleTabProps) {
@@ -86,6 +100,56 @@ export function ScheduleTab({ data, loading, error, onRefresh, onLoadSchedule, o
 
   function updateField<K extends keyof ScheduleFormState>(key: K, value: ScheduleFormState[K]) {
     setForm((current) => ({ ...current, [key]: value }));
+  }
+
+  function firstDifferentTeamKey(teamKey: string) {
+    return data?.teams.find((team) => team.key !== teamKey)?.key ?? teamKey;
+  }
+
+  function updateLeftTeamKey(value: string) {
+    setForm((current) => {
+      const blueSide = sideForTeamKey(current, current.blueTeamKey);
+      const nextRightTeamKey = current.rightTeamKey === value ? firstDifferentTeamKey(value) : current.rightTeamKey;
+      return {
+        ...current,
+        leftTeamKey: value,
+        rightTeamKey: nextRightTeamKey,
+        blueTeamKey: blueSide === "left" ? value : nextRightTeamKey,
+        redTeamKey: blueSide === "left" ? nextRightTeamKey : value,
+      };
+    });
+  }
+
+  function updateRightTeamKey(value: string) {
+    setForm((current) => {
+      const blueSide = sideForTeamKey(current, current.blueTeamKey);
+      const nextLeftTeamKey = current.leftTeamKey === value ? firstDifferentTeamKey(value) : current.leftTeamKey;
+      return {
+        ...current,
+        leftTeamKey: nextLeftTeamKey,
+        rightTeamKey: value,
+        blueTeamKey: blueSide === "left" ? nextLeftTeamKey : value,
+        redTeamKey: blueSide === "left" ? value : nextLeftTeamKey,
+      };
+    });
+  }
+
+  function updateBlueSide(side: TeamSide) {
+    const redSide = oppositeSide(side);
+    setForm((current) => ({
+      ...current,
+      blueTeamKey: teamKeyForSide(current, side),
+      redTeamKey: teamKeyForSide(current, redSide),
+    }));
+  }
+
+  function updateRedSide(side: TeamSide) {
+    const blueSide = oppositeSide(side);
+    setForm((current) => ({
+      ...current,
+      blueTeamKey: teamKeyForSide(current, blueSide),
+      redTeamKey: teamKeyForSide(current, side),
+    }));
   }
 
   async function handleLoadSchedule() {
@@ -256,7 +320,7 @@ export function ScheduleTab({ data, loading, error, onRefresh, onLoadSchedule, o
               </label>
               <label className="field">
                 <span>左チーム</span>
-                <select value={form.leftTeamKey} onChange={(event) => updateField("leftTeamKey", event.target.value)}>
+                <select value={form.leftTeamKey} onChange={(event) => updateLeftTeamKey(event.target.value)}>
                   {data.teams.map((team) => (
                     <option key={team.key} value={team.key}>
                       {team.shortName} | {team.name}
@@ -266,7 +330,7 @@ export function ScheduleTab({ data, loading, error, onRefresh, onLoadSchedule, o
               </label>
               <label className="field">
                 <span>右チーム</span>
-                <select value={form.rightTeamKey} onChange={(event) => updateField("rightTeamKey", event.target.value)}>
+                <select value={form.rightTeamKey} onChange={(event) => updateRightTeamKey(event.target.value)}>
                   {data.teams.map((team) => (
                     <option key={team.key} value={team.key}>
                       {team.shortName} | {team.name}
@@ -276,22 +340,16 @@ export function ScheduleTab({ data, loading, error, onRefresh, onLoadSchedule, o
               </label>
               <label className="field">
                 <span>BLUEチーム</span>
-                <select value={form.blueTeamKey} onChange={(event) => updateField("blueTeamKey", event.target.value)}>
-                  {data.teams.map((team) => (
-                    <option key={team.key} value={team.key}>
-                      {team.shortName} | {team.name}
-                    </option>
-                  ))}
+                <select value={sideForTeamKey(form, form.blueTeamKey)} onChange={(event) => updateBlueSide(event.target.value as TeamSide)}>
+                  <option value="left">左チーム | {form.leftTeamKey || "未入力"}</option>
+                  <option value="right">右チーム | {form.rightTeamKey || "未入力"}</option>
                 </select>
               </label>
               <label className="field">
                 <span>REDチーム</span>
-                <select value={form.redTeamKey} onChange={(event) => updateField("redTeamKey", event.target.value)}>
-                  {data.teams.map((team) => (
-                    <option key={team.key} value={team.key}>
-                      {team.shortName} | {team.name}
-                    </option>
-                  ))}
+                <select value={sideForTeamKey(form, form.redTeamKey)} onChange={(event) => updateRedSide(event.target.value as TeamSide)}>
+                  <option value="left">左チーム | {form.leftTeamKey || "未入力"}</option>
+                  <option value="right">右チーム | {form.rightTeamKey || "未入力"}</option>
                 </select>
               </label>
               <label className="field">

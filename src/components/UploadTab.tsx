@@ -43,27 +43,22 @@ function normalizeSearchText(value: string) {
   return value.trim().toLowerCase().replace(/\s+/g, "");
 }
 
-function findChampionMatch(query: string, champions: ChampionOption[]) {
+function findChampionMatches(query: string, champions: ChampionOption[]) {
   const text = normalizeSearchText(query);
-  if (!text) return null;
+  if (!text) return [];
 
-  for (const option of champions) {
+  const startsWithMatches = champions.filter((option) => {
     const jp = normalizeSearchText(option.champion);
     const aliases = (option.alias ?? []).map(normalizeSearchText);
-    if (jp.startsWith(text) || aliases.some((alias) => alias.startsWith(text))) {
-      return option;
-    }
-  }
+    return jp.startsWith(text) || aliases.some((alias) => alias.startsWith(text));
+  });
+  if (startsWithMatches.length) return startsWithMatches;
 
-  for (const option of champions) {
+  return champions.filter((option) => {
     const jp = normalizeSearchText(option.champion);
     const aliases = (option.alias ?? []).map(normalizeSearchText);
-    if (jp.includes(text) || aliases.some((alias) => alias.includes(text))) {
-      return option;
-    }
-  }
-
-  return null;
+    return jp.includes(text) || aliases.some((alias) => alias.includes(text));
+  });
 }
 
 function extractMatchIdFromChoice(matchChoice: string) {
@@ -164,12 +159,20 @@ export function UploadTab({
     const raw = draftInput.trim();
     if (!raw) return;
 
-    const matched = findChampionMatch(raw, champions);
-    const champion = matched?.champion ?? raw;
+    const matches = findChampionMatches(raw, champions);
+    if (!matches.length) {
+      setStatus(`候補が見つかりません: ${raw}`);
+      return;
+    }
+    if (matches.length > 1) {
+      setStatus(`候補が複数あります: ${matches.map((match) => match.champion).join(", ")}`);
+      return;
+    }
 
     setDraftEntries((current) =>
-      current.map((entry, index) => (index === draftIndex ? { champion } : entry)),
+      current.map((entry, index) => (index === draftIndex ? { champion: matches[0].champion } : entry)),
     );
+    setStatus(`${matches[0].champion} を入力しました。`);
   }
 
   function handleDraftKeyDown(event: ReactKeyboardEvent<HTMLInputElement>) {

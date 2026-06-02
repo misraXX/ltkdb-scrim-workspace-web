@@ -79,7 +79,9 @@ export function ReviewTab({
   const [summary, setSummary] = useState<Record<string, string>>({});
   const [resultRows, setResultRows] = useState<Array<Record<string, string>>>([]);
   const [status, setStatus] = useState("");
-  const [submitting, setSubmitting] = useState(false);
+  const [loadingDetailMatchId, setLoadingDetailMatchId] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [approvingMatchIds, setApprovingMatchIds] = useState<Set<string>>(() => new Set());
 
   async function handleLoadDetail() {
     if (!selectedMatchId) {
@@ -87,7 +89,7 @@ export function ReviewTab({
       return;
     }
 
-    setSubmitting(true);
+    setLoadingDetailMatchId(selectedMatchId);
     try {
       const response = await onLoadDetail(selectedMatchId);
       setDetail(response);
@@ -97,7 +99,7 @@ export function ReviewTab({
     } catch (loadError) {
       setStatus(loadError instanceof Error ? loadError.message : String(loadError));
     } finally {
-      setSubmitting(false);
+      setLoadingDetailMatchId("");
     }
   }
 
@@ -140,15 +142,14 @@ export function ReviewTab({
       return;
     }
 
-    setSubmitting(true);
+    setSaving(true);
     try {
       const response = await onSave(buildPayload());
       setStatus(`編集を保存しました。試合ID: ${response.matchId}`);
-      await onRefresh();
     } catch (saveError) {
       setStatus(saveError instanceof Error ? saveError.message : String(saveError));
     } finally {
-      setSubmitting(false);
+      setSaving(false);
     }
   }
 
@@ -158,23 +159,38 @@ export function ReviewTab({
       return;
     }
 
-    setSubmitting(true);
+    const payload = buildPayload();
+    const approvingMatchId = payload.matchId;
+    if (approvingMatchIds.has(approvingMatchId)) {
+      setStatus("この試合は承認中です。");
+      return;
+    }
+
+    setApprovingMatchIds((current) => new Set(current).add(approvingMatchId));
     try {
-      const response = await onApprove(buildPayload());
+      const response = await onApprove(payload);
       setStatus(
         `承認しました。試合ID: ${response.matchId}${
           response.playerUpdates ? ` / 選手更新: ${response.playerUpdates}` : ""
         }`,
       );
-      await onRefresh();
+      setDetail((current) => (current?.matchId === response.matchId ? null : current));
+      setSelectedMatchId((current) => (current === response.matchId ? "" : current));
     } catch (approveError) {
       setStatus(approveError instanceof Error ? approveError.message : String(approveError));
     } finally {
-      setSubmitting(false);
+      setApprovingMatchIds((current) => {
+        const next = new Set(current);
+        next.delete(approvingMatchId);
+        return next;
+      });
     }
   }
 
   const imageItems = getSummaryImageItems(summary);
+  const currentDetailMatchId = detail?.matchId || selectedMatchId;
+  const loadingSelectedDetail = Boolean(selectedMatchId) && loadingDetailMatchId === selectedMatchId;
+  const approvingCurrentMatch = Boolean(currentDetailMatchId) && approvingMatchIds.has(currentDetailMatchId);
 
   return (
     <section className="workspace-section">
@@ -211,14 +227,24 @@ export function ReviewTab({
             </div>
 
             <div className="button-row">
-              <button type="button" className="ghost-button" onClick={() => void handleLoadDetail()} disabled={submitting}>
-                詳細を読込
+              <button
+                type="button"
+                className="ghost-button"
+                onClick={() => void handleLoadDetail()}
+                disabled={loadingSelectedDetail}
+              >
+                {loadingSelectedDetail ? "読込中..." : "詳細を読込"}
               </button>
-              <button type="button" className="ghost-button" onClick={() => void handleSave()} disabled={submitting || !detail}>
-                編集を保存
+              <button type="button" className="ghost-button" onClick={() => void handleSave()} disabled={saving || !detail}>
+                {saving ? "保存中..." : "編集を保存"}
               </button>
-              <button type="button" className="primary-button" onClick={() => void handleApprove()} disabled={submitting || !detail}>
-                承認する
+              <button
+                type="button"
+                className="primary-button"
+                onClick={() => void handleApprove()}
+                disabled={approvingCurrentMatch || !detail}
+              >
+                {approvingCurrentMatch ? "承認中..." : "承認する"}
               </button>
             </div>
 
