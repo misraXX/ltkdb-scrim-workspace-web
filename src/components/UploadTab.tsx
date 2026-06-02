@@ -19,6 +19,8 @@ type UploadTabProps = {
     matchChoice: string;
     minute15Image: string;
     resultImage: string;
+    minute15NoImage?: boolean;
+    resultNoImage?: boolean;
   }) => Promise<{ matchId: string; updatedKinds: string[] }>;
   onSaveBp: (payload: SaveManualBpPayload) => Promise<{ matchId: string; rows: number }>;
 };
@@ -92,6 +94,8 @@ export function UploadTab({
   const [redTeamName, setRedTeamName] = useState("");
   const [imageUrl, setImageUrl] = useState("");
   const [note, setNote] = useState("");
+  const [minute15NoImage, setMinute15NoImage] = useState(false);
+  const [resultNoImage, setResultNoImage] = useState(false);
   const [status, setStatus] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
@@ -199,10 +203,14 @@ export function UploadTab({
         matchChoice: selectedChoice,
         minute15Image,
         resultImage,
+        minute15NoImage,
+        resultNoImage,
       });
 
       if (minute15InputRef.current) minute15InputRef.current.value = "";
       if (resultInputRef.current) resultInputRef.current.value = "";
+      setMinute15NoImage(false);
+      setResultNoImage(false);
 
       setStatus(`画像を送信しました。試合ID: ${response.matchId} / 更新: ${response.updatedKinds.join(", ")}`);
     } catch (error) {
@@ -303,11 +311,33 @@ export function UploadTab({
           <div className="field-grid">
             <label className="field">
               <span>15分画像</span>
-              <input ref={minute15InputRef} type="file" accept="image/*" />
+              <input ref={minute15InputRef} type="file" accept="image/*" disabled={minute15NoImage} />
+              <label className="check-field">
+                <input
+                  type="checkbox"
+                  checked={minute15NoImage}
+                  onChange={(event) => {
+                    setMinute15NoImage(event.target.checked);
+                    if (event.target.checked && minute15InputRef.current) minute15InputRef.current.value = "";
+                  }}
+                />
+                <span>画像なし（スプシに「-」を保存）</span>
+              </label>
             </label>
             <label className="field">
               <span>リザルト画像</span>
-              <input ref={resultInputRef} type="file" accept="image/*" />
+              <input ref={resultInputRef} type="file" accept="image/*" disabled={resultNoImage} />
+              <label className="check-field">
+                <input
+                  type="checkbox"
+                  checked={resultNoImage}
+                  onChange={(event) => {
+                    setResultNoImage(event.target.checked);
+                    if (event.target.checked && resultInputRef.current) resultInputRef.current.value = "";
+                  }}
+                />
+                <span>画像なし（スプシに「-」を保存）</span>
+              </label>
             </label>
           </div>
 

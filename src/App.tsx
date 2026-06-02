@@ -144,7 +144,8 @@ export function App() {
   async function handleSubmitImages(payload: SubmitUploadPayload): Promise<SubmitUploadResult> {
     const result = await gasApi.submitScrimUploadDialog(payload);
     const completedRequiredImages =
-      result.updatedKinds.includes("15分") && result.updatedKinds.includes("RESULT");
+      result.updatedKinds.some((kind) => kind.startsWith("15分")) &&
+      result.updatedKinds.some((kind) => kind.startsWith("RESULT"));
 
     if (completedRequiredImages) {
       setUploadData((current) =>

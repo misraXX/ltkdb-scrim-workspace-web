@@ -103,6 +103,10 @@ payload:
 - `matchChoice`
 - `minute15Image`
 - `resultImage`
+- `minute15NoImage`
+- `resultNoImage`
+
+`minute15NoImage` / `resultNoImage` が `true` の場合、該当画像URL列へ `-` を保存し、画像なしの対応済みとして扱います。
 
 ### `save-manual-bp`
 

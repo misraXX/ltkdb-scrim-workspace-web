@@ -158,6 +158,8 @@ export type SubmitUploadPayload = {
   matchChoice: string;
   minute15Image: string;
   resultImage: string;
+  minute15NoImage?: boolean;
+  resultNoImage?: boolean;
 };
 
 export type SubmitUploadResult = {
