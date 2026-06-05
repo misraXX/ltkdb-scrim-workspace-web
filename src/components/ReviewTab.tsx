@@ -1,4 +1,5 @@
 import { Fragment, useState } from "react";
+import type { KeyboardEvent as ReactKeyboardEvent } from "react";
 import type {
   ReviewDetailData,
   ReviewListItem,
@@ -20,6 +21,8 @@ type ReviewImageItem = {
   label: string;
   url: string;
 };
+
+const championNameKeys = ["チャンピオン名", "使用チャンピオン", "繝√Ε繝ｳ繝斐が繝ｳ蜷・", "菴ｿ逕ｨ繝√Ε繝ｳ繝斐が繝ｳ"];
 
 function copyRows(rows: Array<Record<string, string>>) {
   return rows.map((row) => ({ ...row }));
@@ -49,6 +52,23 @@ function toPreviewImageUrl(url: string) {
   const fileId = extractDriveFileId(url);
   if (!fileId) return url;
   return `https://drive.google.com/thumbnail?id=${fileId}&sz=w1600`;
+}
+
+function normalizeSearchText(value: string) {
+  return value.trim().toLowerCase().replace(/\s+/g, "");
+}
+
+function findChampionNameMatches(query: string, champions: string[]) {
+  const text = normalizeSearchText(query);
+  if (!text) return [];
+
+  const uniqueChampions = Array.from(new Set(champions.filter(Boolean)));
+  const startsWithMatches = uniqueChampions.filter((champion) =>
+    normalizeSearchText(champion).startsWith(text),
+  );
+  if (startsWithMatches.length) return startsWithMatches;
+
+  return uniqueChampions.filter((champion) => normalizeSearchText(champion).includes(text));
 }
 
 function getSummaryImageItems(summary: Record<string, string>): ReviewImageItem[] {
@@ -124,6 +144,28 @@ export function ReviewTab({
         return next;
       }),
     );
+  }
+
+  function handleChampionKeyDown(index: number, event: ReactKeyboardEvent<HTMLInputElement>) {
+    if (event.key !== "Enter") return;
+    event.preventDefault();
+
+    if (!detail) return;
+    const raw = event.currentTarget.value.trim();
+    if (!raw) return;
+
+    const matches = findChampionNameMatches(raw, detail.options.champions);
+    if (!matches.length) {
+      setStatus(`チャンピオン候補が見つかりません: ${raw}`);
+      return;
+    }
+    if (matches.length > 1) {
+      setStatus(`チャンピオン候補が複数あります: ${matches.join(", ")}`);
+      return;
+    }
+
+    updateResultRow(index, championNameKeys, matches[0]);
+    setStatus(`${matches[0]} を入力しました。`);
   }
 
   function buildPayload(): SavePendingReviewPayload {
@@ -352,23 +394,12 @@ export function ReviewTab({
                               </option>
                             ))}
                           </select>
-                          <select
-                            value={getValue(row, ["チャンピオン名", "使用チャンピオン", "繝√Ε繝ｳ繝斐が繝ｳ蜷・", "菴ｿ逕ｨ繝√Ε繝ｳ繝斐が繝ｳ"])}
-                            onChange={(event) =>
-                              updateResultRow(
-                                index,
-                                ["チャンピオン名", "使用チャンピオン", "繝√Ε繝ｳ繝斐が繝ｳ蜷・", "菴ｿ逕ｨ繝√Ε繝ｳ繝斐が繝ｳ"],
-                                event.target.value,
-                              )
-                            }
-                          >
-                            <option value="">選択</option>
-                            {detail.options.champions.map((champion) => (
-                              <option key={champion} value={champion}>
-                                {champion}
-                              </option>
-                            ))}
-                          </select>
+                          <input
+                            list="review-champion-options"
+                            value={getValue(row, championNameKeys)}
+                            onChange={(event) => updateResultRow(index, championNameKeys, event.target.value)}
+                            onKeyDown={(event) => handleChampionKeyDown(index, event)}
+                          />
                           <input value={getValue(row, ["K"])} onChange={(event) => updateResultRow(index, ["K"], event.target.value)} />
                           <input value={getValue(row, ["D"])} onChange={(event) => updateResultRow(index, ["D"], event.target.value)} />
                           <input value={getValue(row, ["A"])} onChange={(event) => updateResultRow(index, ["A"], event.target.value)} />
@@ -381,6 +412,12 @@ export function ReviewTab({
                         </Fragment>
                       ))}
                     </div>
+
+                    <datalist id="review-champion-options">
+                      {detail.options.champions.map((champion) => (
+                        <option key={champion} value={champion} />
+                      ))}
+                    </datalist>
                   </div>
                 </section>
               </div>
