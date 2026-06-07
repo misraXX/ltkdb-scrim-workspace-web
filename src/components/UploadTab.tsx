@@ -43,20 +43,26 @@ function normalizeSearchText(value: string) {
   return value.trim().toLowerCase().replace(/\s+/g, "");
 }
 
+function championAliases(option: ChampionOption) {
+  return [option.english, ...(option.alias ?? [])]
+    .filter((alias): alias is string => Boolean(alias))
+    .map(normalizeSearchText);
+}
+
 function findChampionMatches(query: string, champions: ChampionOption[]) {
   const text = normalizeSearchText(query);
   if (!text) return [];
 
   const startsWithMatches = champions.filter((option) => {
     const jp = normalizeSearchText(option.champion);
-    const aliases = (option.alias ?? []).map(normalizeSearchText);
+    const aliases = championAliases(option);
     return jp.startsWith(text) || aliases.some((alias) => alias.startsWith(text));
   });
   if (startsWithMatches.length) return startsWithMatches;
 
   return champions.filter((option) => {
     const jp = normalizeSearchText(option.champion);
-    const aliases = (option.alias ?? []).map(normalizeSearchText);
+    const aliases = championAliases(option);
     return jp.includes(text) || aliases.some((alias) => alias.includes(text));
   });
 }

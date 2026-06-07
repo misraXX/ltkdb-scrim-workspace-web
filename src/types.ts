@@ -19,6 +19,7 @@ export type ScheduleOption = {
 
 export type ChampionOption = {
   champion: string;
+  english?: string;
   alias?: string[];
   iconUrl?: string;
 };
