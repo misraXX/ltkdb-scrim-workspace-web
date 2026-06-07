@@ -71,6 +71,10 @@ function findChampionNameMatches(query: string, champions: string[]) {
   return uniqueChampions.filter((champion) => normalizeSearchText(champion).includes(text));
 }
 
+function needsReview(row: Record<string, string>) {
+  return getValue(row, ["要確認フラグ", "要確認", "隕∫｢ｺ隱阪ヵ繝ｩ繧ｰ"]).toUpperCase() === "TRUE";
+}
+
 function getSummaryImageItems(summary: Record<string, string>): ReviewImageItem[] {
   const pairs: Array<{ label: string; keys: string[] }> = [
     { label: "15分", keys: ["15分画像URL", "15分URL", "15蛻・判蜒酋RL", "15蛻・RL"] },
@@ -373,11 +377,14 @@ export function ReviewTab({
                       <div className="review-grid-head">A</div>
                       <div className="review-grid-head">15分CS</div>
 
-                      {resultRows.map((row, index) => (
+                      {resultRows.map((row, index) => {
+                        const rowClassName = needsReview(row) ? "review-grid-row-alert" : "";
+                        return (
                         <Fragment key={`row-${index}`}>
-                          <div className="review-grid-cell">{getValue(row, ["サイド", "SIDE", "繧ｵ繧､繝・"])}</div>
-                          <div className="review-grid-cell">{getValue(row, ["ロール", "ROLE", "繝ｭ繝ｼ繝ｫ"])}</div>
+                          <div className={`review-grid-cell ${rowClassName}`}>{getValue(row, ["サイド", "SIDE", "繧ｵ繧､繝・"])}</div>
+                          <div className={`review-grid-cell ${rowClassName}`}>{getValue(row, ["ロール", "ROLE", "繝ｭ繝ｼ繝ｫ"])}</div>
                           <select
+                            className={rowClassName}
                             value={getValue(row, ["プレイヤー名", "選手名", "繝励Ξ繧､繝､繝ｼ蜷・", "驕ｸ謇句錐"])}
                             onChange={(event) =>
                               updateResultRow(
@@ -395,22 +402,25 @@ export function ReviewTab({
                             ))}
                           </select>
                           <input
+                            className={rowClassName}
                             list="review-champion-options"
                             value={getValue(row, championNameKeys)}
                             onChange={(event) => updateResultRow(index, championNameKeys, event.target.value)}
                             onKeyDown={(event) => handleChampionKeyDown(index, event)}
                           />
-                          <input value={getValue(row, ["K"])} onChange={(event) => updateResultRow(index, ["K"], event.target.value)} />
-                          <input value={getValue(row, ["D"])} onChange={(event) => updateResultRow(index, ["D"], event.target.value)} />
-                          <input value={getValue(row, ["A"])} onChange={(event) => updateResultRow(index, ["A"], event.target.value)} />
+                          <input className={rowClassName} value={getValue(row, ["K"])} onChange={(event) => updateResultRow(index, ["K"], event.target.value)} />
+                          <input className={rowClassName} value={getValue(row, ["D"])} onChange={(event) => updateResultRow(index, ["D"], event.target.value)} />
+                          <input className={rowClassName} value={getValue(row, ["A"])} onChange={(event) => updateResultRow(index, ["A"], event.target.value)} />
                           <input
+                            className={rowClassName}
                             value={getValue(row, ["15分CS", "15分S", "15蛻・S", "15蛻・CS"])}
                             onChange={(event) =>
                               updateResultRow(index, ["15分CS", "15分S", "15蛻・S", "15蛻・CS"], event.target.value)
                             }
                           />
                         </Fragment>
-                      ))}
+                        );
+                      })}
                     </div>
 
                     <datalist id="review-champion-options">

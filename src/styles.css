@@ -394,6 +394,12 @@ h3 {
   align-items: center;
 }
 
+.review-grid-row-alert {
+  background: #fee2e2 !important;
+  border-color: #fca5a5 !important;
+  color: #7f1d1d;
+}
+
 .review-grid input,
 .review-grid select {
   width: 100%;
