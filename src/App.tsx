@@ -23,6 +23,18 @@ import type {
 
 const gasApi = createGasApi();
 const screenshotFolderUrl = "https://drive.google.com/drive/folders/1aHsyaxnplaExCNWfe_2atefN9ohSX5IG";
+const spreadsheetUrl = "https://docs.google.com/spreadsheets/d/1Y8ZBhzr1M7EoOqmp-lKVvD54R45HapiXENh4aK_hr24/edit?gid=201#gid=201";
+const clipFormUrl = "https://docs.google.com/forms/d/e/1FAIpQLScMV6ErnMTeMzfvV1bE8-L5MDz4hMCiXM33MTqfPmPXSkSUHg/viewform";
+const siteUrl = "https://demo-lab0110.github.io/ltk-schedule-status-site/";
+const ga4Url = "https://analytics.google.com/analytics/web/?hl=ja#/a359323532p494142689/reports/intelligenthome";
+
+const workspaceLinks = [
+  { href: screenshotFolderUrl, label: "スクショフォルダ", icon: "SS" },
+  { href: spreadsheetUrl, label: "スプシ", icon: "SP" },
+  { href: clipFormUrl, label: "クリップフォーム", icon: "CL" },
+  { href: siteUrl, label: "サイト", icon: "Web" },
+  { href: ga4Url, label: "GA4", icon: "GA4" },
+];
 
 const tabs: Array<{ id: WorkspaceTab; label: string }> = [
   { id: "schedule", label: "予定と試合ID発行" },
@@ -204,10 +216,21 @@ export function App() {
               } で動作しています。`}
             </p>
           </div>
-          <div className="button-row">
-            <a className="ghost-button link-button" href={screenshotFolderUrl} target="_blank" rel="noreferrer">
-              スクショフォルダ
-            </a>
+          <div className="button-row workspace-link-row">
+            {workspaceLinks.map((link) => (
+              <a
+                key={link.href}
+                className="ghost-button link-button icon-link-button"
+                href={link.href}
+                target="_blank"
+                rel="noreferrer"
+                title={link.label}
+                aria-label={link.label}
+              >
+                <span className="icon-link-mark">{link.icon}</span>
+                <span className="icon-link-text">{link.label}</span>
+              </a>
+            ))}
             <button type="button" className="ghost-button" onClick={() => void refreshAll()} disabled={refreshingAll}>
               {refreshingAll ? "更新中..." : "一覧更新"}
             </button>
