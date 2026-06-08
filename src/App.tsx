@@ -29,12 +29,64 @@ const siteUrl = "https://demo-lab0110.github.io/ltk-schedule-status-site/";
 const ga4Url = "https://analytics.google.com/analytics/web/?hl=ja#/a359323532p494142689/reports/intelligenthome";
 
 const workspaceLinks = [
-  { href: screenshotFolderUrl, label: "スクショフォルダ", icon: "SS" },
-  { href: spreadsheetUrl, label: "スプシ", icon: "SP" },
-  { href: clipFormUrl, label: "クリップフォーム", icon: "CL" },
-  { href: siteUrl, label: "サイト", icon: "Web" },
-  { href: ga4Url, label: "GA4", icon: "GA4" },
-];
+  { href: screenshotFolderUrl, label: "スクショフォルダ", icon: "folder" },
+  { href: spreadsheetUrl, label: "スプシ", icon: "sheet" },
+  { href: clipFormUrl, label: "クリップフォーム", icon: "form" },
+  { href: siteUrl, label: "サイト", icon: "site" },
+  { href: ga4Url, label: "GA4", icon: "analytics" },
+] as const;
+
+type WorkspaceLinkIcon = (typeof workspaceLinks)[number]["icon"];
+
+function WorkspaceIcon({ icon }: { icon: WorkspaceLinkIcon }) {
+  if (icon === "folder") {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M3 6.5h6.3l1.7 2h10v9.8a2.2 2.2 0 0 1-2.2 2.2H5.2A2.2 2.2 0 0 1 3 18.3V6.5Z" />
+        <path d="M3 8.5V5.7c0-1.1.9-2 2-2h4.2l1.8 2.1h8c1.1 0 2 .9 2 2v.7" />
+      </svg>
+    );
+  }
+
+  if (icon === "sheet") {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M6 3.5h9l3 3v14H6v-17Z" />
+        <path d="M15 3.5v3h3" />
+        <path d="M8.5 10h7M8.5 13h7M8.5 16h7M11 10v6" />
+      </svg>
+    );
+  }
+
+  if (icon === "form") {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M6 3.5h12v17H6v-17Z" />
+        <path d="M9 8h6M9 12h6M9 16h4" />
+        <circle cx="8" cy="8" r=".6" />
+        <circle cx="8" cy="12" r=".6" />
+        <circle cx="8" cy="16" r=".6" />
+      </svg>
+    );
+  }
+
+  if (icon === "site") {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <circle cx="12" cy="12" r="8.5" />
+        <path d="M3.5 12h17M12 3.5c2.2 2.4 3.3 5.2 3.3 8.5s-1.1 6.1-3.3 8.5M12 3.5C9.8 5.9 8.7 8.7 8.7 12s1.1 6.1 3.3 8.5" />
+      </svg>
+    );
+  }
+
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M4 19.5h16" />
+      <path d="M6.5 16.5v-5M12 16.5v-9M17.5 16.5v-12" />
+      <path d="M5 9.5 10 6l4 3 5-5" />
+    </svg>
+  );
+}
 
 const tabs: Array<{ id: WorkspaceTab; label: string }> = [
   { id: "schedule", label: "予定と試合ID発行" },
@@ -227,7 +279,9 @@ export function App() {
                 title={link.label}
                 aria-label={link.label}
               >
-                <span className="icon-link-mark">{link.icon}</span>
+                <span className="icon-link-mark">
+                  <WorkspaceIcon icon={link.icon} />
+                </span>
                 <span className="icon-link-text">{link.label}</span>
               </a>
             ))}
