@@ -288,9 +288,9 @@ h3 {
   font-weight: 700;
 }
 
-.field input,
-.field select,
-.field textarea {
+.field > input,
+.field > select,
+.field > textarea {
   width: 100%;
   border: 1px solid var(--line);
   border-radius: 12px;
@@ -302,6 +302,69 @@ h3 {
 .field textarea {
   min-height: 92px;
   resize: vertical;
+}
+
+.upload-list {
+  display: grid;
+  gap: 10px;
+}
+
+.upload-row-card {
+  padding: 14px;
+}
+
+.upload-row-main {
+  display: grid;
+  grid-template-columns: minmax(260px, 0.85fr) minmax(0, 1.8fr);
+  gap: 10px;
+  align-items: center;
+}
+
+.upload-row-title {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.upload-row-title strong {
+  overflow-wrap: anywhere;
+}
+
+.upload-row-id {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.upload-row-actions {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) minmax(220px, 1fr) auto;
+  gap: 12px;
+  align-items: end;
+}
+
+.upload-file-field input[type="file"] {
+  min-height: 41px;
+}
+
+.upload-file-field .check-field {
+  justify-self: start;
+  white-space: nowrap;
+}
+
+.upload-submit-cell {
+  display: flex;
+  align-items: flex-end;
+  min-width: 88px;
+}
+
+.upload-submit-cell .primary-button {
+  width: 100%;
+  justify-content: center;
+}
+
+.upload-row-status {
+  margin: 0;
 }
 
 .draft-step-card,
@@ -455,6 +518,8 @@ h3 {
   .review-detail-layout,
   .field-grid,
   .draft-input-row,
+  .upload-row-main,
+  .upload-row-actions,
   .review-grid {
     grid-template-columns: 1fr;
   }

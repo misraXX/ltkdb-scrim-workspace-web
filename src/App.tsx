@@ -7,8 +7,6 @@ import type {
   PlannedMatchEditData,
   ReviewDetailData,
   ReviewListItem,
-  SaveManualBpPayload,
-  SaveManualBpResult,
   SavePendingReviewPayload,
   SavePendingReviewResult,
   SavePlannedMatchPayload,
@@ -230,11 +228,6 @@ export function App() {
     return result;
   }
 
-  async function handleSaveBp(payload: SaveManualBpPayload): Promise<SaveManualBpResult> {
-    const result = await gasApi.saveManualBp(payload);
-    return result;
-  }
-
   async function handleSaveReview(payload: SavePendingReviewPayload): Promise<SavePendingReviewResult> {
     const result = await gasApi.savePendingReview(payload);
     return result;
@@ -340,9 +333,7 @@ export function App() {
           loading={uploadLoading}
           loadError={uploadError}
           onRefresh={loadUploadData}
-          onLoadMatch={(matchId: string) => gasApi.getManualBpMatchInfo(matchId)}
           onSubmitImages={handleSubmitImages}
-          onSaveBp={handleSaveBp}
         />
       ) : null}
 
